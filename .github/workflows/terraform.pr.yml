@@ -3,51 +3,67 @@ name: Terraform Validate and Plan
 on:
   workflow_dispatch:
   pull_request:
-    branches: 
+    branches:
       - main
 
 jobs:
+  # Job para validar la configuración de Terraform
   validate:
     name: Terraform Validate
     runs-on: ubuntu-latest
     environment: main
     steps:
+      # Checkout el código del repositorio
       - uses: actions/checkout@v3
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+
+      # Configurar Node.js 14.x (solo si es necesario)
+      - name: Set up Node.js 14.x
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
+
+      # Configurar las credenciales de AWS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
+          role-session-name: github-assume-session
           aws-region: us-east-1
+
+      # Validar la configuración de Terraform
       - name: Terraform Validate
         run: |
           cd terraform
-          terraform init  
+          terraform init -input=false
           terraform validate
 
+  # Job para generar el plan de Terraform (depende de la validación)
   plan:
     name: Terraform Plan
     runs-on: ubuntu-latest
     environment: main
-    needs: validate
+    needs: validate  # Este trabajo depende de la validación
     steps:
+      # Checkout el código del repositorio
       - uses: actions/checkout@v3
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+
+      # Configurar Node.js 14.x (solo si es necesario)
+      - name: Set up Node.js 14.x
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
+
+      # Configurar las credenciales de AWS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
+          role-session-name: github-assume-session
           aws-region: us-east-1
-      - name: Initialise project and view terraform plan
+
+      # Inicializar Terraform y mostrar el plan
+      - name: Initialize Terraform and View Plan
         run: |
-          cd terraform 
+          cd terraform
           terraform init -input=false
           terraform plan
