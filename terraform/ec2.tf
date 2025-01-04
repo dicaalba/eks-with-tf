@@ -91,10 +91,5 @@ resource "aws_instance" "bastion" {
 
               # Instalar aws-cli
               yum install -y aws-cli
-
-              # # Crear directorio y cargar archivos YAML 
-              # mkdir -p /home/ec2-user/k8s
-              # echo "${file("files/configmap.yaml")}" > /home/ec2-user/k8s/configmap.yaml
-              # echo "${file("files/deployment.yaml")}" > /home/ec2-user/k8s/deployment.yaml
               EOF
 }
