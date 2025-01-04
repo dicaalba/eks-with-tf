@@ -24,3 +24,7 @@ output "bastion_role_arn" {
   description = "ARN of the Bastion IAM Role"
   value       = aws_iam_role.bastion_role.arn
 }
+
+output "private_key" {
+  value = aws_key_pair.bastion_key.private_key
+}
