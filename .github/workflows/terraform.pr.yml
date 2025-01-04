@@ -1,0 +1,53 @@
+name: Terraform Validate and Plan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    environment: main
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform init  
+          terraform validate
+
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    environment: main
+    needs: validate
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Initialise project and view terraform plan
+        run: |
+          cd terraform 
+          terraform init -input=false
+          terraform plan
