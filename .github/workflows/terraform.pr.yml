@@ -71,7 +71,8 @@ jobs:
       - name: Terraform Plan
         run: |
           cd terraform
-          terraform plan -out=tfplan
+          terraform plan -lock=false -out=tfplan
+
 
       ####### Aplicación del Plan de Terraform #######
 
@@ -79,4 +80,4 @@ jobs:
       - name: Terraform Apply
         run: |
           cd terraform
-          terraform apply -input=false -auto-approve tfplan
+          terraform apply -lock=false -input=false -auto-approve tfplan
