@@ -52,4 +52,6 @@ jobs:
 
       # Mostrar el plan
       - name: Terraform Plan
-        run: terraform plan
+        run: |
+          cd terraform
+          terraform plan
