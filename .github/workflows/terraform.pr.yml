@@ -6,6 +6,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   ACTIONS_STEP_DEBUG: true
   ACTIONS_RUNNER_DEBUG: true
@@ -13,26 +17,38 @@ env:
 jobs:
   # Job para validar la configuración de Terraform
   validate:
-    name: Terraform Validate
+    name: Terraform Validate and Plan
     runs-on: ubuntu-latest
     environment: main
-    steps:
-      # Checkout el código del repositorio
-      - uses: actions/checkout@v3
+    defaults:
+      run:
+        shell: bash
 
-      # Configurar Node.js 14.x (solo si es necesario)
-      - name: Set up Node.js 14.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
+    steps:
+
+      ####### Configuración Inicial #######
 
       # Configurar las credenciales de AWS
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
           role-session-name: github-assume-session
+
+      # Checkout el código del repositorio
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      ####### Configuración de Terraform #######
+
+      # Configurar Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+
+      ####### Validación de Terraform #######
 
       # Validar la configuración de Terraform
       - name: Terraform Validate
@@ -41,33 +57,33 @@ jobs:
           terraform init -input=false || echo "Terraform init already run"
           terraform validate
 
-  # Job para generar el plan de Terraform (depende de la validación)
-  plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
-    environment: main
-    needs: validate  # Este trabajo depende de la validación
-    steps:
-      # Checkout el código del repositorio
-      - uses: actions/checkout@v3
+      ####### Formato de Terraform #######
 
-      # Configurar Node.js 14.x (solo si es necesario)
-      - name: Set up Node.js 14.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
+      # Asegurar que el código está formateado correctamente
+      - name: Terraform Format
+        run: |
+          cd terraform
+          terraform fmt -write
 
-      # Configurar las credenciales de AWS
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
-          role-session-name: github-assume-session
+      ####### Generación del Plan de Terraform #######
 
-      # Inicializar Terraform y mostrar el plan
+      # Generar el plan de ejecución de Terraform
       - name: Terraform Plan
         run: |
           cd terraform
-          terraform init -input=false || echo "Terraform init already run"
-          terraform plan
+          terraform plan -lock=false -out=tfplan
+
+    # Destroy the resources
+      - name: Terraform Destroy
+        run: |
+          cd terraform
+          terraform destroy -lock=false -auto-approve
+
+
+      ####### Aplicación del Plan de Terraform #######
+
+      # Aplicar el plan generado por Terraform (si es necesario)
+       # - name: Terraform Apply
+      #    run: |
+       #     cd terraform
+       #     terraform apply -lock=false -input=false -auto-approve tfplan

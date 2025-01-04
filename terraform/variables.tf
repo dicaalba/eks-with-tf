@@ -22,3 +22,17 @@ variable "private_subnet_02_cidr" {
   description = "CIDR block for private subnet 02"
   type        = string
 }
+
+# variables.tf
+
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t2.medium"
+}
+
+variable "ami_id" {
+  description = "AMI ID for the EC2 instance"
+  type        = string
+  default     = "ami-0261755bbcb8c4a84"  # Ubuntu 20.04 LTS
+}
