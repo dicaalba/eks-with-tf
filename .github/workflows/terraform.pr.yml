@@ -51,23 +51,4 @@ jobs:
       # Checkout el código del repositorio
       - uses: actions/checkout@v3
 
-      # Configurar Node.js 14.x (solo si es necesario)
-      - name: Set up Node.js 14.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
-
-      # Configurar las credenciales de AWS
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
-          role-session-name: github-assume-session
-
-      # Inicializar Terraform y mostrar el plan
-      - name: Terraform Plan
-        run: |
-          cd terraform
-          terraform init -input=false || echo "Terraform init already run"
-          terraform plan
+      # Configurar Node.js 14.x

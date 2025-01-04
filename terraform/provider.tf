@@ -11,7 +11,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "eks-terraform-test"
+    bucket         = "eks-terraform-test-2024"
     dynamodb_table = "terraform_state"
     key            = "tesis"
     region         = "us-east-1"
