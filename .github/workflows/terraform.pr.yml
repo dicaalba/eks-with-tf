@@ -73,11 +73,17 @@ jobs:
           cd terraform
           terraform plan -lock=false -out=tfplan
 
+    # Destroy the resources
+      - name: Terraform Destroy
+        run: |
+          cd terraform
+          terraform destroy -lock=false -auto-approve
+
 
       ####### Aplicación del Plan de Terraform #######
 
       # Aplicar el plan generado por Terraform (si es necesario)
-      - name: Terraform Apply
-        run: |
-          cd terraform
-          terraform apply -lock=false -input=false -auto-approve tfplan
+       # - name: Terraform Apply
+      #    run: |
+       #     cd terraform
+       #     terraform apply -lock=false -input=false -auto-approve tfplan
