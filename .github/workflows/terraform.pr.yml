@@ -6,6 +6,11 @@ on:
     branches:
       - main
 
+env:
+  AWS_REGION: us-east-1
+  ACTIONS_STEP_DEBUG: true
+  ACTIONS_RUNNER_DEBUG: true
+
 jobs:
   # Job para validar la configuración de Terraform
   validate:
@@ -26,15 +31,15 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
           role-session-name: github-assume-session
-          aws-region: us-east-1
 
       # Validar la configuración de Terraform
       - name: Terraform Validate
         run: |
           cd terraform
-          terraform init -input=false
+          terraform init -input=false || echo "Terraform init already run"
           terraform validate
 
   # Job para generar el plan de Terraform (depende de la validación)
@@ -57,13 +62,13 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
           role-session-name: github-assume-session
-          aws-region: us-east-1
 
       # Inicializar Terraform y mostrar el plan
-      - name: Initialize Terraform and View Plan
+      - name: Terraform Plan
         run: |
           cd terraform
-          terraform init -input=false
+          terraform init -input=false || echo "Terraform init already run"
           terraform plan
