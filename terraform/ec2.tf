@@ -67,7 +67,7 @@ resource "aws_iam_instance_profile" "bastion_instance_profile" {
 resource "aws_instance" "bastion" {
   ami                    = var.ami_id  # AMI ID (pasado como variable)
   instance_type           = var.instance_type  # Tipo de instancia (pasado como variable)
-  security_groups        = [aws_security_group.bastion_sg.name]  # Asociamos el Security Group
+  security_groups        = [aws_security_group.bastion_sg.id]  # Asociamos el Security Group
   iam_instance_profile   = aws_iam_instance_profile.bastion_instance_profile.name  # Perfil IAM para permisos
   associate_public_ip_address = true  # Asignar IP pública
 
