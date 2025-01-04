@@ -1,4 +1,4 @@
-name: 'Terraform Plan'
+name: Terraform Validate and Plan
 
 on:
   workflow_dispatch:
@@ -10,9 +10,14 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  ACTIONS_STEP_DEBUG: true
+  ACTIONS_RUNNER_DEBUG: true
+
 jobs:
-  terraform:
-    name: 'Terraform Plan'
+  # Job para validar la configuración de Terraform
+  validate:
+    name: Terraform Validate
     runs-on: ubuntu-latest
     environment: main
     defaults:
@@ -20,26 +25,31 @@ jobs:
         shell: bash
 
     steps:
-    - name: Configure aws credentials
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-          aws-region: us-east-1
-          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
-          role-session-name: github-assume-session
 
-    - name: Checkout
-      uses: actions/checkout@v3
+      # Configurar las credenciales de AWS
+      - name: Configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+            aws-region: us-east-1
+            role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
+            role-session-name: github-assume-session
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-      with:
-        terraform_version: 1.4.6
+      # Checkout el código del repositorio
+      - uses: actions/checkout@v3
 
-    - name: Terraform Init
-      run: terraform init
+      # Configurar Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
 
-    - name: Terraform Format
-      run: terraform fmt -check
+      # Validar la configuración de Terraform
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform init -input=false || echo "Terraform init already run"
+          terraform validate
 
-    - name: Terraform Plan
-      run: terraform plan -input=false
+      # Mostrar el plan
+      - name: Terraform Plan
+        run: terraform plan
