@@ -25,11 +25,6 @@ variable "private_subnet_02_cidr" {
 
 # variables.tf
 
-variable "key_name" {
-  description = "Name of an existing EC2 KeyPair"
-  type        = string
-}
-
 variable "public_key_material" {
   description = "The public key material"
   type        = string
