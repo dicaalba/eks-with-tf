@@ -41,4 +41,10 @@ module "eks" {
     }
 
   }
+
+  depends_on = [
+    aws_vpc.main,
+    aws_subnet.public_1,
+    aws_subnet.public_2
+  ]
 }

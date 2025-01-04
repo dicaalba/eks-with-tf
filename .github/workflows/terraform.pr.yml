@@ -15,9 +15,9 @@ env:
   ACTIONS_RUNNER_DEBUG: true
 
 jobs:
-  # Job para validar la configuración de Terraform
-  validate:
-    name: Terraform Validate and Plan
+  # Job para configurar credenciales de AWS y preparar el entorno
+  setup:
+    name: Setup AWS and Terraform
     runs-on: ubuntu-latest
     environment: main
     defaults:
@@ -25,9 +25,6 @@ jobs:
         shell: bash
 
     steps:
-
-      ####### Configuración Inicial #######
-
       # Configurar las credenciales de AWS
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -40,16 +37,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      ####### Configuración de Terraform #######
-
       # Configurar Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.4.6
 
-      ####### Validación de Terraform #######
+  # Job para validar y formatear la configuración de Terraform
+  validate:
+    name: Terraform Validate and Format
+    runs-on: ubuntu-latest
+    needs: setup  # Dependemos del job de setup
+    environment: main
+    defaults:
+      run:
+        shell: bash
 
+    steps:
       # Validar la configuración de Terraform
       - name: Terraform Validate
         run: |
@@ -57,25 +61,41 @@ jobs:
           terraform init -input=false || echo "Terraform init already run"
           terraform validate
 
-      ####### Formato de Terraform #######
-
-      # Asegurar que el código está formateado correctamente
+      # Asegurar que el código de Terraform está formateado correctamente
       - name: Terraform Format
         run: |
           cd terraform
           terraform fmt -write
 
-      ####### Generación del Plan de Terraform #######
+  # Job para generar el plan de Terraform
+  plan:
+    name: Terraform Plan
+    runs-on: ubuntu-latest
+    needs: validate  # Dependemos del job de validate
+    environment: main
+    defaults:
+      run:
+        shell: bash
 
+    steps:
       # Generar el plan de ejecución de Terraform
       - name: Terraform Plan
         run: |
           cd terraform
           terraform plan -out=tfplan
 
-      ####### Aplicación del Plan de Terraform #######
+  # Job para aplicar el plan de Terraform (si se desea aplicar)
+  apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    needs: plan  # Dependemos del job de plan
+    environment: main
+    defaults:
+      run:
+        shell: bash
 
-      # Aplicar el plan generado por Terraform (si es necesario)
+    steps:
+      # Aplicar el plan generado por Terraform
       - name: Terraform Apply
         run: |
           cd terraform
