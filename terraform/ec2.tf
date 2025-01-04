@@ -70,6 +70,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [aws_security_group.bastion_sg.id]
   # Asociamos el Security Group
   iam_instance_profile   = aws_iam_instance_profile.bastion_instance_profile.name  # Perfil IAM para permisos
+  subnet_id              = aws_subnet.public_1.id # Subnet ID para la instancia
   associate_public_ip_address = true  # Asignar IP pública
 
   tags = {
