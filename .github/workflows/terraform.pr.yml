@@ -1,4 +1,4 @@
-name: Terraform Validate and Plan
+name: 'Terraform Plan'
 
 on:
   workflow_dispatch:
@@ -6,49 +6,40 @@ on:
     branches:
       - main
 
-env:
-  ACTIONS_STEP_DEBUG: true
-  ACTIONS_RUNNER_DEBUG: true
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  # Job para validar la configuración de Terraform
-  validate:
-    name: Terraform Validate
+  terraform:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
     environment: main
+    defaults:
+      run:
+        shell: bash
+
     steps:
-      # Checkout el código del repositorio
-      - uses: actions/checkout@v3
-
-      # Configurar Node.js 14.x (solo si es necesario)
-      - name: Set up Node.js 14.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14.x
-
-      # Configurar las credenciales de AWS
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
+    - name: Configure aws credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
           aws-region: us-east-1
           role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
           role-session-name: github-assume-session
 
-      # Validar la configuración de Terraform
-      - name: Terraform Validate
-        run: |
-          cd terraform
-          terraform init -input=false || echo "Terraform init already run"
-          terraform validate
+    - name: Checkout
+      uses: actions/checkout@v3
 
-  # Job para generar el plan de Terraform (depende de la validación)
-  plan:
-    name: Terraform Plan
-    runs-on: ubuntu-latest
-    environment: main
-    needs: validate  # Este trabajo depende de la validación
-    steps:
-      # Checkout el código del repositorio
-      - uses: actions/checkout@v3
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: 1.4.6
 
-      # Configurar Node.js 14.x
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Format
+      run: terraform fmt -check
+
+    - name: Terraform Plan
+      run: terraform plan -input=false
