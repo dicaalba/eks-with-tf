@@ -3,9 +3,8 @@ name: Terraform Deploy
 on:
   workflow_dispatch:
   push:
-    branches: 
-        - main
-
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -13,23 +12,38 @@ jobs:
     environment: main_approved
     runs-on: ubuntu-20.04
     steps:
+      # Checkout el código del repositorio
       - uses: actions/checkout@v3
-      - name: Use Node.js 14.x
-        uses: actions/setup-node@v1
+
+      # Configurar Node.js (si es necesario para el proyecto)
+      - name: Set up Node.js 14.x
+        uses: actions/setup-node@v3
         with:
           node-version: 14.x
+
+      # Configuración de las credenciales de AWS
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_AK}}
-          aws-secret-access-key: ${{ secrets.AWS_SK }}
           aws-region: us-east-1
-      - name: Initialise project and plan
+          role-to-assume: arn:aws:iam::031842254778:role/github-assume-role
+          role-session-name: github-assume-session
+
+      # Validar el código de Terraform para detectar errores de sintaxis
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform validate
+
+      # Inicializar Terraform y generar el plan
+      - name: Initialize Terraform and Plan
         run: |
           cd terraform
           terraform init -input=false
           terraform plan
-      - name: Deploy terraform
+
+      # Aplicar la configuración de Terraform (despliegue)
+      - name: Apply Terraform
         run: |
           cd terraform
           terraform apply -auto-approve
